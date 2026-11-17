@@ -98,11 +98,27 @@ footer a{color:var(--teal)}
 
 <nav aria-label="목차">
   <div class="wrap">
-    <a href="#why">왜</a><a href="#flow">흐름</a><a href="#cases">결과 예시</a><a href="#guard">안전장치</a><a href="#cost">비용</a><a href="#before">고도화 전·후</a><a href="#next">다음</a>
+    <a href="#eli5">쉽게 설명</a><a href="#why">왜</a><a href="#flow">흐름</a><a href="#files">파일 설명</a><a href="#cases">결과 예시</a><a href="#guard">안전장치</a><a href="#cost">비용</a><a href="#before">고도화 전·후</a><a href="#next">다음</a>
   </div>
 </nav>
 
 <main class="wrap">
+
+<section id="eli5">
+  <h2>5살에게 설명하듯이 (ELI5)<small>식당 주문으로 비유하면 이렇게 돌아가요</small></h2>
+  <div class="card">
+    <ul class="rules" style="list-style:none;padding-left:0">
+      <li>📩 <b>손님이 주문서를 보내요.</b> — 고객이 "부산에서 자카르타로 컨테이너 4개, 얼마예요?" 메일을 보내요.</li>
+      <li>🧑‍🍳 <b>주문 받는 직원(AI)이 주문서를 읽고 메모해요.</b> — 어디서 어디로, 몇 개, 언제 떠나는지 적어요.</li>
+      <li>🧮 <b>계산원(코드)이 가격표를 보고 계산기로 계산해요.</b> — 직원은 절대 가격을 지어내지 않아요. 숫자는 계산기 담당이에요.</li>
+      <li>✍️ <b>직원(AI)이 손님께 드릴 안내문을 써요.</b> — 가격은 계산원이 준 종이에서만 옮겨 적어요.</li>
+      <li>🔍 <b>검수원(코드)이 안내문을 다시 확인해요.</b> — 금액이 계산서랑 같은지, "깎아 드릴게요" 같은 함부로 한 약속이 없는지, 요일이 맞는지 봐요.</li>
+      <li>🙋 <b>매니저(나)가 읽고 보내요.</b> — 마지막 보내기 버튼은 사람만 눌러요.</li>
+      <li>⏰ <b>알람시계가 매일 아침 8:30에 깨워 줘요.</b> — 새로 온 주문서만 처리하고, 이미 한 건은 건너뛰어요.</li>
+    </ul>
+    <p class="note" style="margin-top:10px">한 줄 요약: <b>글은 AI가, 숫자는 계산기가, 확인은 검수원이, 보내기는 사람이.</b></p>
+  </div>
+</section>
 
 <section id="why">
   <h2>왜 만들었나<small>OO상선 수출영업팀 · 매일 반복되는 견적 회신</small></h2>
@@ -130,6 +146,32 @@ footer a{color:var(--teal)}
     <div class="step"><span class="who code">코드</span><h3>④ 초안 점검</h3><p>금액이 계산표와 같은지, 약속 문구·서명·요일이 맞는지 다시 확인해요.</p><span class="out">점검.md</span></div>
   </div>
   <div class="auto">⏰ <b>평일 아침 8:30 자동 실행</b> (Windows 작업 스케줄러). 새로 들어온 메일만 처리하고, 처리한 메일은 건너뜁니다. 새 메일이 없으면 AI 비용도 0원이에요. 담당자는 출근해서 초안과 점검표만 읽으면 됩니다.</div>
+</section>
+
+<section id="files">
+  <h2>파일 설명<small>폴더 안 파일이 각각 무슨 일을 하는지 쉽게</small></h2>
+  <div class="tbl card" style="padding:0">
+    <table>
+      <thead><tr><th>파일</th><th>뭐 하는 파일?</th><th>비유</th></tr></thead>
+      <tbody>
+        <tr><td><code>받은메일\*.txt</code></td><td>고객 견적 요청 메일 (가상 6건)</td><td>주문서</td></tr>
+        <tr><td><code>운임표_2026-11_가상.xlsx</code></td><td>항로·장비별 운임, 승인하한, Free Time</td><td>가격표</td></tr>
+        <tr><td><code>quote_ai.py</code></td><td>전체 순서를 지휘하는 본체 프로그램</td><td>주방장</td></tr>
+        <tr><td><code>build_quote.py</code></td><td>운임표로 금액을 계산하는 코드 (팀 스킬에서 재사용)</td><td>계산기</td></tr>
+        <tr><td><code>추출조건.json</code></td><td>AI가 메일에서 뽑은 조건 (항구·수량·ETD 등)</td><td>주문 메모</td></tr>
+        <tr><td><code>계산표.md</code></td><td>항목별 금액·올인 합계·적용기간 점검</td><td>계산서</td></tr>
+        <tr><td><code>회신초안.md</code></td><td>AI가 쓴 고객 회신 메일 초안 + 내부 메모</td><td>손님 안내문</td></tr>
+        <tr><td><code>점검.md</code></td><td>초안의 금액·약속·서명·요일을 코드로 확인한 결과</td><td>검수표</td></tr>
+        <tr><td><code>처리목록.csv</code></td><td>이미 처리한 메일 목록 (다음엔 건너뜀)</td><td>완료 도장</td></tr>
+        <tr><td><code>AI_사용기록.csv</code></td><td>AI를 부를 때마다 토큰·비용·시간 기록</td><td>영수증 묶음</td></tr>
+        <tr><td><code>실행.bat</code></td><td>더블클릭하면 지금 바로 한 번 실행</td><td>수동 시작 버튼</td></tr>
+        <tr><td><code>매일_견적정리_실행.bat</code></td><td>작업 스케줄러가 평일 08:30에 부르는 파일</td><td>알람시계</td></tr>
+        <tr><td><code>brd.md</code></td><td>왜 만들었나, 목표, 지킬 원칙</td><td>가게 운영 방침</td></tr>
+        <tr><td><code>prd.md</code></td><td>무엇이 되어 있고, 무엇이 남았나 (다음 사람이 이어받는 문서)</td><td>인수인계 노트</td></tr>
+        <tr><td><code>site\index.html</code></td><td>지금 보고 있는 이 소개 페이지</td><td>가게 간판</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section id="cases">
