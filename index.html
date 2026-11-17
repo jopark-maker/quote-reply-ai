@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>견적 회신 AI</title>
+<meta name="description" content="견적 요청 메일을 넣으면 AI가 조건을 읽고, 코드가 운임을 계산·검산해 회신 초안까지 만드는 업무 자동화 소개 페이지 (교육용 더미 데이터)">
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#1b2430; --sub:#5b6676; --line:#e2e6ec;
+  --teal:#0f766e; --teal-soft:#e6f4f2; --orange:#c2410c; --orange-soft:#fff1e8;
+  --ok:#15803d; --ok-soft:#e8f6ec; --warn:#a16207; --warn-soft:#fdf6e3; --bad:#b91c1c; --bad-soft:#fdecec;
+  --code:#f1f3f6;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#11161c; --card:#1a2129; --ink:#e7ebf0; --sub:#9aa6b4; --line:#2b3540;
+    --teal:#2dd4bf; --teal-soft:#123532; --orange:#fb923c; --orange-soft:#3a2416;
+    --ok:#4ade80; --ok-soft:#14301f; --warn:#facc15; --warn-soft:#332b10; --bad:#f87171; --bad-soft:#3a1717;
+    --code:#141a20;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.6;font-size:16px}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+header{background:linear-gradient(135deg,#0f766e,#115e59);color:#fff;padding:36px 0 30px}
+header .tag{display:inline-block;font-size:12.5px;background:rgba(255,255,255,.16);padding:3px 10px;border-radius:99px;margin-bottom:12px}
+header h1{font-size:clamp(24px,6vw,36px);line-height:1.3;margin:0 0 10px;word-break:keep-all}
+header h1 em{font-style:normal;color:#fed7aa}
+header p{margin:0;opacity:.92;word-break:keep-all}
+nav{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-top:6px;padding-bottom:6px}
+nav .wrap::-webkit-scrollbar{display:none}
+nav a{flex:0 0 auto;font-size:14px;color:var(--sub);text-decoration:none;padding:6px 10px;border-radius:8px}
+nav a:hover{background:var(--teal-soft);color:var(--teal)}
+section{padding:28px 0 6px}
+h2{font-size:21px;margin:0 0 6px;word-break:keep-all}
+h2 small{display:block;font-size:13.5px;font-weight:400;color:var(--sub);margin-top:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+@media(min-width:640px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+.kpi b{display:block;font-size:24px;color:var(--teal);line-height:1.2}
+.kpi span{font-size:13px;color:var(--sub);word-break:keep-all}
+.flow{display:grid;gap:10px;margin-top:14px}
+@media(min-width:720px){.flow{grid-template-columns:repeat(4,1fr)}}
+.step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.step .who{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;margin-bottom:6px}
+.who.ai{background:var(--orange-soft);color:var(--orange)}
+.who.code{background:var(--teal-soft);color:var(--teal)}
+.step h3{margin:0 0 4px;font-size:16px}
+.step p{margin:0;font-size:14px;color:var(--sub);word-break:keep-all}
+.step .out{display:block;margin-top:8px;font-size:12.5px;font-family:Consolas,monospace;color:var(--ink);background:var(--code);padding:3px 7px;border-radius:6px;width:fit-content}
+.auto{margin-top:10px;background:var(--teal-soft);border-radius:12px;padding:12px 14px;font-size:14.5px;word-break:keep-all}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
+.tabs button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:99px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+.case{display:none}
+.case.on{display:block}
+.case .lead{margin:6px 0 10px;font-size:14.5px;word-break:keep-all}
+.pair{display:grid;gap:12px}
+@media(min-width:760px){.pair{grid-template-columns:1fr 1.25fr}}
+.box{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.box .hd{font-size:13px;font-weight:700;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--code)}
+.box pre{margin:0;padding:12px;white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:14px;line-height:1.65}
+.mark{background:var(--warn-soft);border-radius:3px;padding:0 2px}
+.chk{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
+.chk td,.chk th{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.chk th{font-size:13px;color:var(--sub);font-weight:600}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:480px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}
+.tbl th{font-size:13px;color:var(--sub);font-weight:600;background:var(--code)}
+.num{text-align:right!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+ul.rules{margin:8px 0 0;padding-left:20px}
+ul.rules li{margin:6px 0;word-break:keep-all}
+.note{font-size:13.5px;color:var(--sub);word-break:keep-all}
+ol.next{padding-left:20px;margin:8px 0 0}
+ol.next li{margin:6px 0;word-break:keep-all}
+footer{margin-top:30px;padding:22px 0 36px;border-top:1px solid var(--line);font-size:13.5px;color:var(--sub)}
+footer a{color:var(--teal)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="tag">AI agent 교육 서울 5차 · 실전 프로젝트 고도화</span>
+    <h1>견적 요청 메일을 넣으면<br><em>회신 초안</em>까지 나옵니다</h1>
+    <p>AI가 메일을 읽고 문장을 쓰고, <b>숫자는 코드가 계산하고 검산</b>합니다. 사람은 초안을 읽고 보내기만 하면 됩니다.</p>
+  </div>
+</header>
+
+<nav aria-label="목차">
+  <div class="wrap">
+    <a href="#why">왜</a><a href="#flow">흐름</a><a href="#cases">결과 예시</a><a href="#guard">안전장치</a><a href="#cost">비용</a><a href="#before">고도화 전·후</a><a href="#next">다음</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="why">
+  <h2>왜 만들었나<small>OO상선 수출영업팀 · 매일 반복되는 견적 회신</small></h2>
+  <div class="card">
+    <ul class="rules">
+      <li>견적 요청 한 건마다 <b>조건 읽기 → 운임표 찾기 → 계산 → 회신 쓰기</b>를 손으로 반복 (건당 10~15분)</li>
+      <li>할증료 누락, USD·KRW를 섞은 합계, 적용기간 지난 운임, 승인 전 타겟 운임 "가능합니다" 같은 실수가 생김</li>
+      <li>사람마다 회신 양식이 달라 고객이 비교하기 어려움</li>
+    </ul>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b>약 36초</b><span>메일 1건 AI 처리 시간</span></div>
+    <div class="kpi"><b>6 / 6</b><span>가상 메일 점검 통과</span></div>
+    <div class="kpi"><b>4 / 4</b><span>일부러 틀린 초안 잡아냄</span></div>
+    <div class="kpi"><b>약 10원</b><span>메일 1건 AI 비용</span></div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2>어떻게 동작하나<small>AI와 코드가 번갈아 일하고, 마지막은 사람이 봅니다</small></h2>
+  <div class="flow">
+    <div class="step"><span class="who ai">AI</span><h3>① 조건 추출</h3><p>항구·장비·수량·ETD·타겟 운임·Free Time·면제 요청을 읽어요. "다음 주 금요일"도 날짜로 바꿔요.</p><span class="out">추출조건.json</span></div>
+    <div class="step"><span class="who code">코드</span><h3>② 운임 계산</h3><p>운임표 엑셀에서 항목별 금액·올인 합계를 계산하고 적용기간·승인하한을 점검해요.</p><span class="out">계산표.md</span></div>
+    <div class="step"><span class="who ai">AI</span><h3>③ 회신 초안</h3><p>팀 표준 양식(항목별 + 해상 올인)으로 씁니다. 숫자는 계산표에서만 가져와요.</p><span class="out">회신초안.md</span></div>
+    <div class="step"><span class="who code">코드</span><h3>④ 초안 점검</h3><p>금액이 계산표와 같은지, 약속 문구·서명·요일이 맞는지 다시 확인해요.</p><span class="out">점검.md</span></div>
+  </div>
+  <div class="auto">⏰ <b>평일 아침 8:30 자동 실행</b> (Windows 작업 스케줄러). 새로 들어온 메일만 처리하고, 처리한 메일은 건너뜁니다. 새 메일이 없으면 AI 비용도 0원이에요. 담당자는 출근해서 초안과 점검표만 읽으면 됩니다.</div>
+</section>
+
+<section id="cases">
+  <h2>결과 예시<small>가상 고객 A~F사 · 교육용 가상 운임표 (실제 운임 아님)</small></h2>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-c="c1">A사 · 정상 건</button>
+    <button role="tab" aria-selected="false" data-c="c2">D사 · 타겟 운임</button>
+    <button role="tab" aria-selected="false" data-c="c3">C사 · 기간 밖</button>
+    <button role="tab" aria-selected="false" data-c="c4">F사 · 자동 실행</button>
+  </div>
+
+  <div class="case on" id="c1">
+    <p class="lead">가장 흔한 요청. 고객이 "올인으로" 달라고 해서 <b>항목별 + 올인 합계</b>를 같이 적었어요.</p>
+    <div class="pair">
+      <div class="box"><div class="hd">📩 받은 메일</div><pre>보낸사람: A사 해상수출팀 김OO 과장
+제목: 부산-자카르타 20' 견적 요청
+
+다음 주 선적 건 견적 부탁드립니다.
+- 구간: 부산 → 자카르타
+- 장비: 20' DRY 4대
+- 품목: 자동차 부품 (일반화물)
+- ETD: 11/25 희망
+- B/L 1건
+
+올인으로 주시면 감사하겠습니다.</pre></div>
+      <div class="box"><div class="hd">✍️ AI 회신 초안</div><pre>제목: [견적] 부산-자카르타 20GP 4대 / ETD 11/25(수)
+
+1. 해상운임 (컨테이너당, USD)
+- O/F: USD 410 / 20GP
+- BAF: USD 150 / 20GP
+- PSS: USD 100 / 20GP
+- 해상 올인 합계: USD 660 / 20GP (4대 USD 2,640)
+
+2. 한국 현지비용 (KRW, 해상운임과 별도)
+- THC: KRW 150,000 / 20GP
+- DOC: KRW 50,000 / B/L
+
+3. 조건
+- 적용: ETD 11/01(일)~11/30(월) 선적분
+- 도착지 Free Time: DEM 7일 / DET 7일
+- 스페이스는 부킹 접수 시 확정됩니다.</pre></div>
+    </div>
+    <table class="chk"><tr><th>코드 점검</th><th>결과</th></tr>
+      <tr><td>금액 = 계산표</td><td><span class="pill ok">통과</span> 모두 계산표 숫자</td></tr>
+      <tr><td>서명 = 실행자 · 날짜 요일</td><td><span class="pill ok">통과</span></td></tr></table>
+  </div>
+
+  <div class="case" id="c2">
+    <p class="lead">고객 타겟 O/F USD 750이 승인하한(801)보다 낮고, Free Time 14일은 표준(7일)보다 길어요. <b>먼저 약속하지 않고 "내부 검토 후 회신"</b>으로 썼어요.</p>
+    <div class="pair">
+      <div class="box"><div class="hd">📩 받은 메일</div><pre>보낸사람: D사 포워딩팀 최OO 과장
+제목: SUB 40HC 5대 / 타겟 운임 문의
+
+부산 → 수라바야 40HC 5대, ETD 11/28 입니다.
+화주 타겟이 O/F USD 750 이라
+이 수준으로 가능한지 확인 부탁드립니다.
+그리고 도착지 프리타임 14일 가능할까요?
+B/L은 2건으로 나눠 주세요.</pre></div>
+      <div class="box"><div class="hd">✍️ AI 회신 초안 (일부)</div><pre>1. 해상운임 (컨테이너당, USD)
+- O/F: USD 890 / 40HC
+- BAF: USD 300 / 40HC
+- PSS: USD 200 / 40HC
+- 해상 올인 합계: USD 1,390 / 40HC (5대 USD 6,950)
+
+4. 문의하신 내용
+- <span class="mark">말씀하신 O/F USD 750 타겟 운임은 내부 검토 후 따로 회신드리겠습니다.</span>
+- <span class="mark">말씀하신 도착지 Free Time 14일은 내부 검토 후 따로 회신드리겠습니다.</span></pre></div>
+    </div>
+    <table class="chk"><tr><th>코드 점검</th><th>결과</th></tr>
+      <tr><td>금액 = 계산표</td><td><span class="pill ok">통과</span></td></tr>
+      <tr><td>승인 필요 → 약속 없음</td><td><span class="pill ok">통과</span> "내부 검토 후 회신"만 씀</td></tr>
+      <tr><td>후속 조치</td><td><span class="pill warn">승인 필요 2건</span> 팀장 승인 요청 메모 작성</td></tr></table>
+  </div>
+
+  <div class="case" id="c3">
+    <p class="lead">ETD 12/5는 11월 운임표 적용기간 밖이에요. <b>11월 숫자를 쓰지 않고</b> 확정 후 회신으로 안내했어요.</p>
+    <div class="pair">
+      <div class="box"><div class="hd">📩 받은 메일 (요약)</div><pre>보낸사람: C사 물류팀 박OO 차장
+제목: 램차방 20피트 2대 견적
+
+부산에서 태국 램차방으로 20피트 2대 나갈 예정입니다.
+ETD 12/5 기준으로 견적 부탁드리고,
+도착지 프리타임도 알려주세요.
+품목은 화학제품(비위험물, MSDS 첨부 가능)입니다.</pre></div>
+      <div class="box"><div class="hd">✍️ AI 회신 초안 (일부)</div><pre><span class="mark">말씀하신 ETD 12/05(토)는 12월 운임이 아직 확정되지 않아 확정 후 회신드리겠습니다.</span>
+
+- 도착지 Free Time: 현지 대리점 확인 후 안내드리겠습니다.
+- 위험물 여부 확인을 위해 MSDS 부탁드립니다.</pre></div>
+    </div>
+    <table class="chk"><tr><th>코드 점검</th><th>결과</th></tr>
+      <tr><td>기간 밖 → 금액 없음</td><td><span class="pill ok">통과</span> 금액 0개</td></tr>
+      <tr><td>서명 = 실행자 · 날짜 요일</td><td><span class="pill ok">통과</span></td></tr></table>
+  </div>
+
+  <div class="case" id="c4">
+    <p class="lead">사람이 실행하지 않고 <b>작업 스케줄러가 돌려서</b> 처리한 건이에요. 새 메일 1건만 처리하고 앞선 5건은 건너뛰었어요.</p>
+    <div class="pair">
+      <div class="box"><div class="hd">📩 받은 메일</div><pre>보낸사람: F사 물류팀 정OO 대리
+제목: 부산-하이퐁 20GP 2대 견적 문의
+
+- 구간: 부산 → 하이퐁
+- 장비: 20GP 2대
+- 품목: 섬유 원단 (일반화물)
+- ETD: 11/27 예정
+- B/L 1건</pre></div>
+      <div class="box"><div class="hd">✍️ AI 회신 초안 (일부)</div><pre>1. 해상운임 (컨테이너당, USD)
+- O/F: USD 210 / 20GP
+- BAF: USD 150 / 20GP
+- 해상 올인 합계: USD 360 / 20GP (2대 USD 720)
+
+3. 조건
+- <span class="mark">도착지 Free Time: 현지 대리점 확인 후 안내드리겠습니다.</span>
+  (운임표에 하이퐁 Free Time이 없어서 숫자를 지어내지 않음)</pre></div>
+    </div>
+    <div class="box" style="margin-top:12px"><div class="hd">🖥️ 실행 기록 (스케줄러)</div><pre style="font-family:Consolas,monospace;font-size:13px">===== 2026-11-17 16:18:07 =====
+--- quote_ai (17 견적회신_AI) ---
+새 메일 1건 (엔진 cli, 모델 haiku)
+  견적요청_06_F사_하이퐁.txt → 통과
+exitcode 0</pre></div>
+  </div>
+</section>
+
+<section id="guard">
+  <h2>안전장치<small>AI는 그럴듯하게 틀릴 수 있어서, 틀려도 새지 않게 막았어요</small></h2>
+  <div class="card">
+    <ul class="rules">
+      <li><b>AI는 숫자를 만들지 않아요.</b> 금액은 코드가 운임표에서 계산하고, 초안의 숫자는 코드가 계산표와 다시 대조해요.</li>
+      <li><b>발송은 사람이 해요.</b> 자동으로 나가는 메일은 없어요.</li>
+      <li><b>약속 금지.</b> 승인하한 미만 타겟·Free Time 연장·면제 요청은 "내부 검토 후 회신"으로만.</li>
+      <li><b>모르면 비워요.</b> 운임표에 없는 값(예: 하이퐁 Free Time)은 "확인 후 안내"로 써요.</li>
+      <li><b>더미 데이터만.</b> 고객 A~F사, 교육용 가상 운임. 이 페이지에는 회사명·실명이 없어요.</li>
+    </ul>
+  </div>
+  <h3 style="font-size:16px;margin:18px 0 0">점검 코드가 진짜 잡는지 시험 (일부러 틀린 초안)</h3>
+  <div class="tbl card" style="padding:0">
+    <table>
+      <thead><tr><th>바꾼 것</th><th>결과</th></tr></thead>
+      <tbody>
+        <tr><td>원본 그대로</td><td><span class="pill ok">통과</span></td></tr>
+        <tr><td>올인 USD 1,390 → 1,290 (숫자 환각)</td><td><span class="pill bad">잡음</span> 계산표에 없는 금액</td></tr>
+        <tr><td>"USD 750 가능합니다" 추가 (약속)</td><td><span class="pill bad">잡음</span> 승인 필요 항목 약속</td></tr>
+        <tr><td>서명을 다른 사람 이름으로</td><td><span class="pill bad">잡음</span> 서명 불일치</td></tr>
+        <tr><td>11/28(토) → 11/28(금)</td><td><span class="pill bad">잡음</span> 요일 틀림</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="cost">
+  <h2>비용과 시간<small>실제로 돌려서 기록한 값 (모델: Claude Haiku 5.5)</small></h2>
+  <div class="tbl card" style="padding:0">
+    <table>
+      <thead><tr><th>단계</th><th class="num">입력 토큰</th><th class="num">출력 토큰</th><th class="num">비용</th><th class="num">시간</th></tr></thead>
+      <tbody>
+        <tr><td>① 추출 (1건 평균)</td><td class="num">23,222</td><td class="num">664</td><td class="num">USD 0.0021</td><td class="num">10.4초</td></tr>
+        <tr><td>③ 초안 (1건 평균)</td><td class="num">26,200</td><td class="num">4,819</td><td class="num">USD 0.0049</td><td class="num">25.9초</td></tr>
+        <tr><td><b>5건 합계</b></td><td></td><td></td><td class="num"><b>USD 0.035 (약 50원)</b></td><td class="num">약 3분</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">입력 토큰의 대부분(약 2만)은 도구가 기본으로 붙이는 내용이고 캐시라서 싸요. 메일·양식·계산표는 3천 토큰 안팎이에요. API 키 없이, 로그인된 Claude Code를 헤드리스(<code>claude -p</code>)로 불러서 돌려요.</p>
+</section>
+
+<section id="before">
+  <h2>고도화 전·후<small>1차 결과물의 한계가 곧 고도화 목록</small></h2>
+  <div class="tbl card" style="padding:0">
+    <table>
+      <thead><tr><th>1차 결과물의 한계</th><th>해결 도구</th><th>지금</th></tr></thead>
+      <tbody>
+        <tr><td>규칙으로만 정리, 회신은 손으로</td><td>AI 내장</td><td>AI 추출 + AI 초안, 숫자는 코드</td></tr>
+        <tr><td>매번 직접 실행</td><td>스케줄링</td><td>평일 08:30 자동, 새 메일만</td></tr>
+        <tr><td>AI가 틀려도 모름</td><td>환각 대응</td><td>코드 점검 4종, 틀린 초안 4/4 잡음</td></tr>
+        <tr><td>동료에게 링크로 공유 불가</td><td>배포</td><td>이 페이지 (GitHub Pages)</td></tr>
+        <tr><td>다음 사람이 이어받기 어려움</td><td>BRD·PRD</td><td>현재 상태·남은 일 문서화</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="next">
+  <h2>다음에 할 일</h2>
+  <div class="card">
+    <ol class="next">
+      <li>Outlook 받은편지함에서 "견적" 메일을 직접 읽어 오기</li>
+      <li>초안을 Outlook 임시보관함에 넣기 (발송은 여전히 사람이)</li>
+      <li>[승인 필요] 건은 팀장 승인 요청 메모까지 자동 작성</li>
+      <li>아침에 한 화면으로 보는 요약 (오늘 n건 · 승인 필요 n건)</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>교육용 결과물입니다. 메일·고객·운임은 모두 가상 데이터이며 실제 운임이나 거래 조건이 아닙니다.</p>
+    <p>같은 과정의 다른 결과물: <a href="https://jopark-maker.github.io/ai-campaign-site/">AI·업무자동화 캠페인 사이트</a></p>
+    <p>AI agent 교육 서울 5차 · 2026-11-17</p>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.tabs button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected','false')});
+    document.querySelectorAll('.case').forEach(function(x){x.classList.remove('on')});
+    b.setAttribute('aria-selected','true');
+    document.getElementById(b.dataset.c).classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
